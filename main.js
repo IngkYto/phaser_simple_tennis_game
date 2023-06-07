@@ -48,6 +48,10 @@ let gameScene = new Phaser.Class({
     preload: function() {
         this.load.image('player', './assets/bar.png');// プレイヤー用の画像を読み込む
         this.load.image('ball', './assets/ball.png');// ボール用の画像を読み込む
+
+        this.load.audio('hit_paddle', 'assets/hit_paddle.mp3');
+        this.load.audio('hit_wall', 'assets/hit_wall.mp3');
+
     },
 
     create: function() {
@@ -72,6 +76,43 @@ let gameScene = new Phaser.Class({
         // ボールが境界線や他の物体に衝突したときに反射するように設定
         ball.setBounce(1, 1);
 
+
+        let graphics = this.add.graphics({ fillStyle: { color: 0x0000ff } });
+
+        // 四つの壁を作成
+        this.wallTop = this.add.rectangle(400, 5, 800, 10);
+        this.wallBottom = this.add.rectangle(400, 595, 800, 10);
+
+        // ボディを固定するために Physics に壁を追加
+        this.physics.add.existing(this.wallTop, true);
+        this.physics.add.existing(this.wallBottom, true);
+
+        // 壁とボールの衝突を監視
+        this.physics.add.collider(ball, this.wallTop, this.hitWall, null, this);
+        this.physics.add.collider(ball, this.wallBottom, this.hitWall, null, this);
+
+        
+
+        // this.wallTop = this.physics.add.staticGroup();
+        // for(let i = 0; i < 20; i++){
+        //     let wall = this.physics.add.image(i*40, 0, 'wall');
+        //     wall.setAlpha(0); // make wall invisible
+        //     this.wallTop.add(wall);
+        // }       
+
+        // this.wallBottom = this.physics.add.staticGroup();
+        // for(let i = 0; i < 20; i++){
+        //     let wall = this.physics.add.image(i*40, 600, 'wall');
+        //     wall.setAlpha(0); // make wall invisible
+        //     this.wallBottom.add(wall);
+        // }        
+
+        // // 壁とボールの衝突を監視
+        // this.physics.add.collider(ball, this.wallTop, this.hitWall, null, this);
+        // this.physics.add.collider(ball, this.wallBottom, this.hitWall, null, this);
+
+
+
         // カーソルキーの入力を監視するためのオブジェクトを作成
         cursors = this.input.keyboard.createCursorKeys();
         
@@ -94,11 +135,8 @@ let gameScene = new Phaser.Class({
         // ゲーム開始前のカウントダウン表示を作成
         this.countdownText = this.add.text(game.config.width / 2, game.config.height / 2 - 100, '', { fontSize: '64px', fill: '#ffffff' }).setOrigin(0.5);
 
-        // ゲームオーバーフラグを初期化（false:ゲーム進行中, true:ゲーム終了）
-        this.gameOverFlag = false;
-        
-        // ゲームオーバー時のテキストを作成
-        this.gameOverText = this.add.text(game.config.width / 2, game.config.height / 2, '', { fontSize: '64px', fill: '#ffffff' }).setOrigin(0.5);
+        this.hit_paddle_sound = this.sound.add('hit_paddle');
+        this.hit_wall_sound = this.sound.add('hit_wall');
 
         // ゲーム開始時にボールを初期位置にリセット
         this.resetBall();
@@ -134,6 +172,15 @@ let gameScene = new Phaser.Class({
         } else {
             ball.setVelocityX(-300 * smashBoost); // ここも同様です
         }
+
+        this.hit_paddle_sound.play();
+
+    },
+
+    hitWall: function(ball, wall) {
+        // ここに壁に当たったときの処理を記述
+        console.log('wall hit');
+        this.hit_wall_sound.play();
     },
 
     update: function() {
