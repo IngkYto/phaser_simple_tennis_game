@@ -6,6 +6,7 @@ var scoreText1, scoreText2;
 // スマッシュキーが押された時間を保持
 var smashTime1 = 0;
 var smashTime2 = 0;
+var volume = 0.2;
 
 var startScene = new Phaser.Class({
 
@@ -22,7 +23,7 @@ var startScene = new Phaser.Class({
 
     create: function() {
         // タイトルの作成
-        let title = this.add.text(400, 200, 'Game Title', { fontSize: '32px', fill: '#fff' });
+        let title = this.add.text(400, 200, 'Tennis Game', { fontSize: '32px', fill: '#fff' });
         title.setOrigin(0.5);
 
         // スタートボタンの作成
@@ -51,6 +52,9 @@ let gameScene = new Phaser.Class({
 
         this.load.audio('hit_paddle', 'assets/hit_paddle.mp3');
         this.load.audio('hit_wall', 'assets/hit_wall.mp3');
+        this.load.audio('hit_smash', 'assets/hit_smash.mp3');
+        this.load.audio('point', 'assets/point.mp3');
+        this.load.audio('clear', 'assets/clear.mp3');
 
     },
 
@@ -77,7 +81,7 @@ let gameScene = new Phaser.Class({
         ball.setBounce(1, 1);
 
 
-        let graphics = this.add.graphics({ fillStyle: { color: 0x0000ff } });
+        //let graphics = this.add.graphics({ fillStyle: { color: 0x0000ff } });
 
         // 四つの壁を作成
         this.wallTop = this.add.rectangle(400, 5, 800, 10);
@@ -91,28 +95,7 @@ let gameScene = new Phaser.Class({
         this.physics.add.collider(ball, this.wallTop, this.hitWall, null, this);
         this.physics.add.collider(ball, this.wallBottom, this.hitWall, null, this);
 
-        
-
-        // this.wallTop = this.physics.add.staticGroup();
-        // for(let i = 0; i < 20; i++){
-        //     let wall = this.physics.add.image(i*40, 0, 'wall');
-        //     wall.setAlpha(0); // make wall invisible
-        //     this.wallTop.add(wall);
-        // }       
-
-        // this.wallBottom = this.physics.add.staticGroup();
-        // for(let i = 0; i < 20; i++){
-        //     let wall = this.physics.add.image(i*40, 600, 'wall');
-        //     wall.setAlpha(0); // make wall invisible
-        //     this.wallBottom.add(wall);
-        // }        
-
-        // // 壁とボールの衝突を監視
-        // this.physics.add.collider(ball, this.wallTop, this.hitWall, null, this);
-        // this.physics.add.collider(ball, this.wallBottom, this.hitWall, null, this);
-
-
-
+    
         // カーソルキーの入力を監視するためのオブジェクトを作成
         cursors = this.input.keyboard.createCursorKeys();
         
@@ -137,6 +120,9 @@ let gameScene = new Phaser.Class({
 
         this.hit_paddle_sound = this.sound.add('hit_paddle');
         this.hit_wall_sound = this.sound.add('hit_wall');
+        this.hit_smash_sound = this.sound.add('hit_smash');
+        this.point_sound = this.sound.add('point');
+        this.clear_sound = this.sound.add('clear');
 
         // ゲーム開始時にボールを初期位置にリセット
         this.resetBall();
@@ -163,7 +149,11 @@ let gameScene = new Phaser.Class({
         let smashBoost = 1;
         if ((player === player1 && this.time.now - smashTime1 < 200) || 
             (player === player2 && this.time.now - smashTime2 < 200)) {
-            smashBoost = 8;
+            smashBoost = 5;
+            this.hit_smash_sound.play();
+        }else{            
+            this.hit_paddle_sound.play(); 
+            this.hit_paddle_sound.setVolume(volume);           
         }
 
         // ここでボールの現在の方向に基づいて速度を手動で設定します
@@ -173,14 +163,14 @@ let gameScene = new Phaser.Class({
             ball.setVelocityX(-300 * smashBoost); // ここも同様です
         }
 
-        this.hit_paddle_sound.play();
+        
 
     },
 
     hitWall: function(ball, wall) {
         // ここに壁に当たったときの処理を記述
-        console.log('wall hit');
         this.hit_wall_sound.play();
+        this.hit_wall_sound.setVolume(volume); 
     },
 
     update: function() {
@@ -216,10 +206,15 @@ let gameScene = new Phaser.Class({
             scoreText2.setText('score: ' + score2);
             // プレイヤー2の得点が3点になったらゲーム終了
             if (score2 === 3) {
+                this.clear_sound.play();
+                this.clear_sound.setVolume(volume);
                 this.scene.start('endScene', { winner: 'Player 2 Wins!' });
             }
             // それ以外はボールを初期位置にリセット
             else{
+                
+                this.point_sound.play();
+                this.point_sound.setVolume(volume);
                 this.resetBall();
             }
         } 
@@ -229,10 +224,15 @@ let gameScene = new Phaser.Class({
             scoreText1.setText('score: ' + score1);
             // プレイヤー1の得点が3点になったらゲーム終了
             if (score1 === 3) {
+                this.clear_sound.play();
+                this.clear_sound.setVolume(volume);
                 this.scene.start('endScene', { winner: 'Player 1 Wins!' });
             }
             // それ以外はボールを初期位置にリセット
             else{  
+                
+                this.point_sound.play();
+                this.point_sound.setVolume(volume);
                 this.resetBall();
             }
         }
