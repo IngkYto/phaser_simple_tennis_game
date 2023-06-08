@@ -318,6 +318,11 @@ var endScene = new Phaser.Class({
     },
 
     create: function(data) {
+
+        //スコアをリセット
+        score1 = 0;
+        score2 = 0;
+
         this.gameOverText = this.add.text(game.config.width / 2, game.config.height / 2, '', { fontSize: '64px', fill: '#ffffff' }).setOrigin(0.5);
         this.gameOverText.setText(data.winner + '\nCongratulations!');
 
